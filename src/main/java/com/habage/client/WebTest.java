@@ -7,6 +7,7 @@ import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.ObjectMapper;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import org.json.JSONObject;
 
 public class WebTest {
     public static void main(String[] args) throws UnirestException {
@@ -28,7 +29,8 @@ public class WebTest {
                 .queryString("apiKey", "123")
                 .asJson();
 
-        System.out.println(jsonResponse.getBody().getObject().get("name"));
+        JSONObject v3 = jsonResponse.getBody().getObject();
+        System.out.println(v3);
 
         Student student = Unirest.get("http://appapi.heclouds.com/onenetapp/v3")
                 .header("accept", "application/json")
