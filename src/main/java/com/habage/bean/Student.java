@@ -3,6 +3,9 @@ package com.habage.bean;
 
 import com.alibaba.fastjson.JSON;
 
+/**
+ * @author yuz
+ */
 public class Student {
 
     private String name;
