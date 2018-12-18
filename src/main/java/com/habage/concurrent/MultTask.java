@@ -55,12 +55,12 @@ public class MultTask {
 
         List<Integer> values = MultTask.newInstance().addTask(() -> {
             System.out.println("start1");
-            Thread.sleep(1000);
+            Thread.sleep(100);
             System.out.println("call future 1.");
             return 1;
         }).addTask(() -> {
             System.out.println("start2");
-            Thread.sleep(1000);
+            Thread.sleep(100);
             System.out.println("call future 2.");
             return 2;
         }).get();
