@@ -24,42 +24,47 @@ public class MultTask {
         }
     };
 
+    private static  ExecutorService pool = new ThreadPoolExecutor(10, 10, 0L,
+            TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<>(), factory);
+
+    private static ListeningExecutorService service = MoreExecutors.listeningDecorator(pool);
+
+    private List<ListenableFuture<Integer>> featureList;
+
+    public MultTask() {
+        featureList = Lists.newArrayList();
+    }
+
+    public MultTask addTask(Callable<Integer> callable) {
+        featureList.add(service.submit(callable));
+        return this;
+    }
+
+    public List<Integer> get() throws ExecutionException, InterruptedException {
+        ListenableFuture<List<Integer>> listenableFutures = Futures.successfulAsList(featureList);
+        return listenableFutures.get();
+    }
+
+    public static MultTask newInstance() {
+        return new MultTask();
+    }
+
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         System.out.println("Mult Task...");
 
-        ExecutorService pool = new ThreadPoolExecutor(10, 10, 0L,
-                TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(), factory);
-
-        ListeningExecutorService service = MoreExecutors.listeningDecorator(pool);
-
-        ListenableFuture future1 = service.submit(new Callable<Integer>() {
-            @Override
-            public Integer call() throws InterruptedException {
-                System.out.println("start1");
-                Thread.sleep(1000);
-                System.out.println("call future 1.");
-                return 1;
-            }
-        });
-
-        ListenableFuture future2 = service.submit(new Callable<Integer>() {
-            @Override
-            public Integer call() throws InterruptedException {
-                System.out.println("start2");
-                Thread.sleep(1000);
-                System.out.println("call future 2.");
-                //	   throw new RuntimeException("----call future 2.");
-                return 2;
-            }
-        });
-
-        List<ListenableFuture<Integer>> features = Lists.newArrayList();
-        features.add(future1);
-        features.add(future2);
-
-        ListenableFuture<List<Integer>> listListenableFuture = Futures.successfulAsList(features);
-        listListenableFuture.get();
+        List<Integer> values = MultTask.newInstance().addTask(() -> {
+            System.out.println("start1");
+            Thread.sleep(1000);
+            System.out.println("call future 1.");
+            return 1;
+        }).addTask(() -> {
+            System.out.println("start2");
+            Thread.sleep(1000);
+            System.out.println("call future 2.");
+            return 2;
+        }).get();
+        System.out.println(values);
 
         System.out.println("finished!!");
 
