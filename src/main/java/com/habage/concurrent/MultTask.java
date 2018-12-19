@@ -24,15 +24,21 @@ public class MultTask {
         }
     };
 
-    private static  ExecutorService pool = new ThreadPoolExecutor(10, 10, 0L,
-            TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<>(), factory);
+    private static  ExecutorService pool;
 
-    private static ListeningExecutorService service = MoreExecutors.listeningDecorator(pool);
+    private  ListeningExecutorService service;
 
     private List<ListenableFuture<Integer>> featureList;
 
     public MultTask() {
+        this(10);
+    }
+
+    public MultTask(int concurrency) {
+        pool = new ThreadPoolExecutor(concurrency, concurrency, 0L,
+                TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<>(), factory);
+        service = MoreExecutors.listeningDecorator(pool);
         featureList = Lists.newArrayList();
     }
 
@@ -43,11 +49,13 @@ public class MultTask {
 
     public List<Integer> get() throws ExecutionException, InterruptedException {
         ListenableFuture<List<Integer>> listenableFutures = Futures.successfulAsList(featureList);
-        return listenableFutures.get();
+        List<Integer> integers = listenableFutures.get();
+        pool.shutdown();
+        return integers;
     }
 
     public static MultTask newInstance() {
-        return new MultTask();
+        return new MultTask(2);
     }
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
@@ -63,11 +71,24 @@ public class MultTask {
             Thread.sleep(100);
             System.out.println("call future 2.");
             return 2;
+        }).addTask(() -> {
+            System.out.println("start3");
+            Thread.sleep(100);
+            System.out.println("call future 3.");
+            return 3;
+        }).addTask(() -> {
+            System.out.println("start4");
+            Thread.sleep(100);
+            System.out.println("call future 4.");
+            return 4;
+        }).addTask(() -> {
+            System.out.println("start5");
+            Thread.sleep(100);
+            System.out.println("call future 5.");
+            return 5;
         }).get();
         System.out.println(values);
 
         System.out.println("finished!!");
-
-        pool.shutdown();
     }
 }
